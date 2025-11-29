@@ -1,13 +1,36 @@
 const { app } = require('@azure/functions');
+const { QueueClient } = require('@azure/storage-queue');
 
 app.http('IngestSensorData', {
-    methods: ['GET', 'POST'],
+    methods: ['POST'],
     authLevel: 'anonymous',
     handler: async (request, context) => {
-        context.log(`Http function processed request for url "${request.url}"`);
+        try {
+            const body = await request.json();
+            context.log("Received data:", body);
 
-        const name = request.query.get('name') || await request.text() || 'world';
+            const connStr = process.env["AzureWebJobsStorage"];
+            const queueName = "sensor-data-queue";
 
-        return { body: `Hello, ${name}!` };
+            const queueClient = new QueueClient(connStr, queueName);
+
+            await queueClient.createIfNotExists();
+
+            const message = Buffer.from(JSON.stringify(body)).toString("base64");
+
+            await queueClient.sendMessage(message);
+
+            return {
+                status: 200,
+                jsonBody: { ok: true, queued: body }
+            };
+
+        } catch (err) {
+            context.log("ERROR:", err);
+            return {
+                status: 500,
+                jsonBody: { error: err.message }
+            };
+        }
     }
 });
