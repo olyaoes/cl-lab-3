@@ -1,5 +1,5 @@
 {
-  "send_url": "https://YOUR_AZURE_FUNCTION.azurewebsites.net/api/ingest",
+  "send_url": "https://olya-lab3-functions21-esf4czdnd6hkgccg.westeurope-01.azurewebsites.net/api/IngestSensorData",
   "sensors": {
     "temperature": {
       "interval_ms": 40,
